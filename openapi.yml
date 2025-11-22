@@ -1,0 +1,704 @@
+openapi: 3.0.3
+info:
+  title: MLB Simulator API
+  description: |
+    MLB Stats APIを利用したチーム一覧・スケジュール・ライブゲーム情報の取得と、
+    試合シミュレーション機能を提供する内部API
+  version: 1.0.0
+  contact:
+    name: MLB Simulator API Support
+
+servers:
+  - url: http://localhost:3000/api/v1
+    description: ローカル開発環境
+  - url: https://api.mlb-simulator.example.com/api/v1
+    description: 本番環境
+
+tags:
+  - name: teams
+    description: チーム情報取得
+  - name: schedule
+    description: スケジュール情報取得
+  - name: live-feed
+    description: ライブゲーム情報取得
+  - name: simulation
+    description: 試合シミュレーション機能
+
+paths:
+  /teams:
+    get:
+      tags:
+        - teams
+      summary: チーム一覧取得
+      description: MLB Stats APIからチーム一覧を取得する
+      operationId: getTeams
+      parameters:
+        - name: sportId
+          in: query
+          description: スポーツID（MLB固定）
+          required: true
+          schema:
+            type: integer
+            default: 1
+            minimum: 1
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeamsResponse'
+        '400':
+          description: パラメータ不正
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '408':
+          description: タイムアウト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '5xx':
+          description: MLB APIエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /schedule:
+    get:
+      tags:
+        - schedule
+      summary: スケジュール取得
+      description: 指定チームと日付のスケジュールを取得する
+      operationId: getSchedule
+      parameters:
+        - name: sportId
+          in: query
+          description: スポーツID（MLB固定）
+          required: true
+          schema:
+            type: integer
+            default: 1
+        - name: teamId
+          in: query
+          description: MLBチームID
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+        - name: date
+          in: query
+          description: 取得対象日（YYYY-MM-DD形式）
+          required: true
+          schema:
+            type: string
+            format: date
+            example: "2025-04-01"
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ScheduleResponse'
+        '400':
+          description: パラメータ不正
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '408':
+          description: タイムアウト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '5xx':
+          description: MLB APIエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /game/{gamePk}/feed/live:
+    get:
+      tags:
+        - live-feed
+      summary: ライブゲーム情報取得
+      description: 指定ゲームのライブ情報を取得する
+      operationId: getLiveFeed
+      parameters:
+        - name: gamePk
+          in: path
+          description: MLBゲーム識別子
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: 成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LiveFeedResponse'
+        '404':
+          description: ゲームが見つからない
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '408':
+          description: タイムアウト
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '5xx':
+          description: MLB APIエラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /games:
+    post:
+      tags:
+        - simulation
+      summary: 試合作成
+      description: 2チームでシミュレーション試合を作成する
+      operationId: createGame
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateGameRequest'
+      responses:
+        '201':
+          description: 試合作成成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameResponse'
+        '400':
+          description: パラメータ不正
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidTeams:
+                  summary: 同じチームが指定された場合
+                  value:
+                    error: "INVALID_PARAMETER"
+                    message: "homeTeamId and awayTeamId must be different"
+                invalidDate:
+                  summary: 日付フォーマット不正
+                  value:
+                    error: "INVALID_PARAMETER"
+                    message: "gameDate must be ISO8601 format"
+
+  /games/{gamePk}/start:
+    post:
+      tags:
+        - simulation
+      summary: 試合開始
+      description: 作成済み試合を開始状態に変更する
+      operationId: startGame
+      parameters:
+        - name: gamePk
+          in: path
+          description: ゲーム識別子
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: 試合開始成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameStartResponse'
+        '404':
+          description: ゲームが見つからない
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: 状態遷移エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                alreadyStarted:
+                  summary: すでに開始済み
+                  value:
+                    error: "STATE_TRANSITION_ERROR"
+                    message: "Game is already started or finished"
+
+  /games/{gamePk}/innings/{inningNumber}:
+    put:
+      tags:
+        - simulation
+      summary: イニング別スコア更新
+      description: 指定イニングのスコアを手動設定する
+      operationId: updateInningScore
+      parameters:
+        - name: gamePk
+          in: path
+          description: ゲーム識別子
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+        - name: inningNumber
+          in: path
+          description: イニング番号（1～9+延長）
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateInningRequest'
+      responses:
+        '200':
+          description: スコア更新成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InningUpdateResponse'
+        '400':
+          description: パラメータ不正
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                invalidHalf:
+                  summary: half パラメータ不正
+                  value:
+                    error: "INVALID_PARAMETER"
+                    message: "half must be 'top' or 'bottom'"
+        '404':
+          description: ゲームが見つからない
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: 状態遷移エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                gameNotInProgress:
+                  summary: 試合が進行中でない
+                  value:
+                    error: "STATE_TRANSITION_ERROR"
+                    message: "Game is not in progress"
+
+  /games/{gamePk}/finish:
+    post:
+      tags:
+        - simulation
+      summary: 試合終了
+      description: 試合を終了状態に変更する
+      operationId: finishGame
+      parameters:
+        - name: gamePk
+          in: path
+          description: ゲーム識別子
+          required: true
+          schema:
+            type: integer
+            minimum: 1
+      responses:
+        '200':
+          description: 試合終了成功
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GameFinishResponse'
+        '400':
+          description: パラメータ不正
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                insufficientInnings:
+                  summary: 9イニング未完了
+                  value:
+                    error: "INVALID_OPERATION"
+                    message: "Game must have at least 9 innings completed"
+        '404':
+          description: ゲームが見つからない
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: 状態遷移エラー
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  schemas:
+    # 共通スキーマ
+    ErrorResponse:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: エラーコード
+          example: "INVALID_PARAMETER"
+        message:
+          type: string
+          description: エラーメッセージ
+          example: "date must be YYYY-MM-DD"
+        detail:
+          type: string
+          description: 詳細情報
+          example: "502 Bad Gateway"
+
+    Team:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 121
+        name:
+          type: string
+          example: "New York Mets"
+        abbreviation:
+          type: string
+          example: "NYM"
+
+    TeamDetail:
+      allOf:
+        - $ref: '#/components/schemas/Team'
+        - type: object
+          properties:
+            locationName:
+              type: string
+              example: "New York"
+            venue:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Citi Field"
+
+    GameStatus:
+      type: object
+      properties:
+        detailedState:
+          type: string
+          enum: [Scheduled, In Progress, Final, Live]
+          example: "Scheduled"
+        abstractGameState:
+          type: string
+          enum: [Preview, Live, Final]
+          example: "Preview"
+
+    TeamScore:
+      type: object
+      properties:
+        runs:
+          type: integer
+          minimum: 0
+          example: 0
+        hits:
+          type: integer
+          minimum: 0
+          example: 0
+        errors:
+          type: integer
+          minimum: 0
+          example: 0
+
+    Linescore:
+      type: object
+      properties:
+        currentInning:
+          type: integer
+          minimum: 1
+          example: 1
+        currentInningOrdinal:
+          type: string
+          example: "1st"
+        inningState:
+          type: string
+          enum: [Top, Bottom, End]
+          example: "Top"
+        teams:
+          type: object
+          properties:
+            home:
+              $ref: '#/components/schemas/TeamScore'
+            away:
+              $ref: '#/components/schemas/TeamScore'
+        innings:
+          type: array
+          items:
+            type: object
+            properties:
+              num:
+                type: integer
+                example: 1
+              ordinalNum:
+                type: string
+                example: "1st"
+              home:
+                $ref: '#/components/schemas/TeamScore'
+              away:
+                $ref: '#/components/schemas/TeamScore'
+
+    # リクエストスキーマ
+    CreateGameRequest:
+      type: object
+      required:
+        - homeTeamId
+        - awayTeamId
+        - gameDate
+      properties:
+        homeTeamId:
+          type: integer
+          minimum: 1
+          example: 133
+          description: ホームチームID
+        awayTeamId:
+          type: integer
+          minimum: 1
+          example: 121
+          description: アウェイチームID
+        gameDate:
+          type: string
+          format: date-time
+          example: "2025-04-01T23:05:00Z"
+          description: 試合日時（ISO8601形式）
+
+    UpdateInningRequest:
+      type: object
+      required:
+        - half
+        - runs
+        - hits
+        - errors
+      properties:
+        half:
+          type: string
+          enum: [top, bottom]
+          example: "top"
+          description: イニングの表裏
+        runs:
+          type: integer
+          minimum: 0
+          example: 2
+          description: 得点
+        hits:
+          type: integer
+          minimum: 0
+          example: 3
+          description: ヒット数
+        errors:
+          type: integer
+          minimum: 0
+          example: 0
+          description: エラー数
+
+    # レスポンススキーマ
+    TeamsResponse:
+      type: object
+      properties:
+        teams:
+          type: array
+          items:
+            $ref: '#/components/schemas/TeamDetail'
+
+    ScheduleResponse:
+      type: object
+      properties:
+        dates:
+          type: array
+          items:
+            type: object
+            properties:
+              date:
+                type: string
+                format: date
+                example: "2025-04-01"
+              games:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    gamePk:
+                      type: integer
+                      example: 123456789
+                    gameDate:
+                      type: string
+                      format: date-time
+                      example: "2025-04-01T23:05:00Z"
+                    status:
+                      $ref: '#/components/schemas/GameStatus'
+                    teams:
+                      type: object
+                      properties:
+                        home:
+                          type: object
+                          properties:
+                            team:
+                              $ref: '#/components/schemas/Team'
+                        away:
+                          type: object
+                          properties:
+                            team:
+                              $ref: '#/components/schemas/Team'
+
+    LiveFeedResponse:
+      type: object
+      properties:
+        gameData:
+          type: object
+          properties:
+            teams:
+              type: object
+              properties:
+                home:
+                  $ref: '#/components/schemas/Team'
+                away:
+                  $ref: '#/components/schemas/Team'
+        liveData:
+          type: object
+          properties:
+            linescore:
+              $ref: '#/components/schemas/Linescore'
+            plays:
+              type: object
+              properties:
+                allPlays:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      about:
+                        type: object
+                        properties:
+                          atBatIndex:
+                            type: integer
+                          result:
+                            type: string
+                          isScoringPlay:
+                            type: boolean
+                      result:
+                        type: object
+                        properties:
+                          description:
+                            type: string
+                          event:
+                            type: string
+                          rbi:
+                            type: integer
+                      matchup:
+                        type: object
+                        properties:
+                          batter:
+                            type: object
+                            properties:
+                              fullName:
+                                type: string
+                scoringPlays:
+                  type: array
+                  items:
+                    type: integer
+
+    GameResponse:
+      type: object
+      properties:
+        gamePk:
+          type: integer
+          example: 999000001
+        gameDate:
+          type: string
+          format: date-time
+          example: "2025-04-01T23:05:00Z"
+        status:
+          $ref: '#/components/schemas/GameStatus'
+        teams:
+          type: object
+          properties:
+            home:
+              type: object
+              properties:
+                team:
+                  $ref: '#/components/schemas/Team'
+            away:
+              type: object
+              properties:
+                team:
+                  $ref: '#/components/schemas/Team'
+
+    GameStartResponse:
+      type: object
+      properties:
+        gamePk:
+          type: integer
+          example: 999000001
+        status:
+          $ref: '#/components/schemas/GameStatus'
+        liveData:
+          type: object
+          properties:
+            linescore:
+              $ref: '#/components/schemas/Linescore'
+
+    InningUpdateResponse:
+      type: object
+      properties:
+        gamePk:
+          type: integer
+          example: 999000001
+        liveData:
+          type: object
+          properties:
+            linescore:
+              $ref: '#/components/schemas/Linescore'
+
+    GameFinishResponse:
+      type: object
+      properties:
+        gamePk:
+          type: integer
+          example: 999000001
+        status:
+          $ref: '#/components/schemas/GameStatus'
+        liveData:
+          type: object
+          properties:
+            linescore:
+              type: object
+              properties:
+                teams:
+                  type: object
+                  properties:
+                    home:
+                      $ref: '#/components/schemas/TeamScore'
+                    away:
+                      $ref: '#/components/schemas/TeamScore'
