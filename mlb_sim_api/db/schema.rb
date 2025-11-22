@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_11_20_144202) do
+ActiveRecord::Schema[8.0].define(version: 2025_11_22_005401) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -21,6 +21,8 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_20_144202) do
     t.bigint "visitor_team_id", null: false
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.bigint "game_pk"
+    t.index ["game_pk"], name: "index_games_on_game_pk", unique: true
     t.index ["home_team_id"], name: "index_games_on_home_team_id"
     t.index ["visitor_team_id"], name: "index_games_on_visitor_team_id"
   end
@@ -32,6 +34,10 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_20_144202) do
     t.integer "home_score"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.string "half"
+    t.integer "runs", default: 0
+    t.integer "hits", default: 0
+    t.integer "error_count", default: 0
     t.index ["game_id"], name: "index_innings_on_game_id"
   end
 
@@ -41,6 +47,9 @@ ActiveRecord::Schema[8.0].define(version: 2025_11_20_144202) do
     t.string "league"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.integer "mlb_id"
+    t.string "location_name"
+    t.index ["mlb_id"], name: "index_teams_on_mlb_id", unique: true
   end
 
   add_foreign_key "games", "teams", column: "home_team_id"
