@@ -1,11 +1,151 @@
 # Read about fixtures at https://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
 
-one:
-  name: MyString
-  abbreviation: MyString
-  league: MyString
+arizona_diamondbacks:
+  name: "Arizona Diamondbacks"
+  abbreviation: "ARI"
+  league: "NL"
 
-two:
-  name: MyString
-  abbreviation: MyString
-  league: MyString
+atlanta_braves:
+  name: "Atlanta Braves"
+  abbreviation: "ATL"
+  league: "NL"
+
+baltimore_orioles:
+  name: "Baltimore Orioles"
+  abbreviation: "BAL"
+  league: "AL"
+
+boston_red_sox:
+  name: "Boston Red Sox"
+  abbreviation: "BOS"
+  league: "AL"
+
+chicago_cubs:
+  name: "Chicago Cubs"
+  abbreviation: "CHC"
+  league: "NL"
+
+chicago_white_sox:
+  name: "Chicago White Sox"
+  abbreviation: "CWS"
+  league: "AL"
+
+cincinnati_reds:
+  name: "Cincinnati Reds"
+  abbreviation: "CIN"
+  league: "NL"
+
+cleveland_guardians:
+  name: "Cleveland Guardians"
+  abbreviation: "CLE"
+  league: "AL"
+
+colorado_rockies:
+  name: "Colorado Rockies"
+  abbreviation: "COL"
+  league: "NL"
+
+detroit_tigers:
+  name: "Detroit Tigers"
+  abbreviation: "DET"
+  league: "AL"
+
+houston_astros:
+  name: "Houston Astros"
+  abbreviation: "HOU"
+  league: "AL"
+
+kansas_city_royals:
+  name: "Kansas City Royals"
+  abbreviation: "KC"
+  league: "AL"
+
+los_angeles_angels:
+  name: "Los Angeles Angels"
+  abbreviation: "LAA"
+  league: "AL"
+
+los_angeles_dodgers:
+  name: "Los Angeles Dodgers"
+  abbreviation: "LAD"
+  league: "NL"
+
+miami_marlins:
+  name: "Miami Marlins"
+  abbreviation: "MIA"
+  league: "NL"
+
+milwaukee_brewers:
+  name: "Milwaukee Brewers"
+  abbreviation: "MIL"
+  league: "NL"
+
+minnesota_twins:
+  name: "Minnesota Twins"
+  abbreviation: "MIN"
+  league: "AL"
+
+new_york_mets:
+  name: "New York Mets"
+  abbreviation: "NYM"
+  league: "NL"
+
+new_york_yankees:
+  name: "New York Yankees"
+  abbreviation: "NYY"
+  league: "AL"
+
+oakland_athletics:
+  name: "Oakland Athletics"
+  abbreviation: "OAK"
+  league: "AL"
+
+philadelphia_phillies:
+  name: "Philadelphia Phillies"
+  abbreviation: "PHI"
+  league: "NL"
+
+pittsburgh_pirates:
+  name: "Pittsburgh Pirates"
+  abbreviation: "PIT"
+  league: "NL"
+
+san_diego_padres:
+  name: "San Diego Padres"
+  abbreviation: "SD"
+  league: "NL"
+
+san_francisco_giants:
+  name: "San Francisco Giants"
+  abbreviation: "SF"
+  league: "NL"
+
+seattle_mariners:
+  name: "Seattle Mariners"
+  abbreviation: "SEA"
+  league: "AL"
+
+st_louis_cardinals:
+  name: "St. Louis Cardinals"
+  abbreviation: "STL"
+  league: "NL"
+
+tampa_bay_rays:
+  name: "Tampa Bay Rays"
+  abbreviation: "TB"
+  league: "AL"
+
+texas_rangers:
+  name: "Texas Rangers"
+  abbreviation: "TEX"
+  league: "AL"
+
+toronto_blue_jays:
+  name: "Toronto Blue Jays"
+  abbreviation: "TOR"
+  league: "AL"
+
+washington_nationals:
+  name: "Washington Nationals"
+  abbreviation: "WSH"
+  league: "NL"
